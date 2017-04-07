@@ -1,2 +1,2 @@
-# NG Backend Developer Training Material Java Version
+# NG Backend Developer Training Material - Java Version
 
