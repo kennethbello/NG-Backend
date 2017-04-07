@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class Exercise91 {
+public class MozuDataConnectorTest {
 
     MozuApiContext apiContext = new MozuApiContext(18740, 29081);
 
@@ -101,12 +101,12 @@ public class Exercise91 {
 
         AppAuthenticator.initialize(appAuthInfo);
 
-        Exercise91 exercise91 = new Exercise91();
+        MozuDataConnectorTest mozuDataConnectorTest = new MozuDataConnectorTest();
 
         try {
-//            exercise91.getAttributes();
-//            exercise91.addAttributes();
-            exercise91.getProductTypes();
+//            mozuDataConnectorTest.getAttributes();
+//            mozuDataConnectorTest.addAttributes();
+            mozuDataConnectorTest.getProductTypes();
         }
         catch (Exception e) {
             e.printStackTrace();
