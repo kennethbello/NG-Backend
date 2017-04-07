@@ -3,10 +3,17 @@ package dataconnector.GettingStarted;
 import com.mozu.api.MozuApiContext;
 import com.mozu.api.contracts.appdev.AppAuthInfo;
 import com.mozu.api.contracts.productadmin.*;
+import com.mozu.api.resources.commerce.OrderResource;
+import com.mozu.api.resources.commerce.catalog.admin.LocationInventoryResource;
+import com.mozu.api.resources.commerce.catalog.admin.ProductResource;
 import com.mozu.api.resources.commerce.catalog.admin.attributedefinition.AttributeResource;
 import com.mozu.api.resources.commerce.catalog.admin.attributedefinition.ProductTypeResource;
+import com.mozu.api.resources.commerce.customer.CustomerAccountResource;
+import com.mozu.api.resources.commerce.customer.accounts.CustomerContactResource;
 import com.mozu.api.security.AppAuthenticator;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,12 +22,14 @@ public class MozuDataConnectorTest {
 
     MozuApiContext apiContext = new MozuApiContext(18740, 29081);
 
+    // Exercise 9.1
     public void getAttributes() throws Exception {
         AttributeResource attributeResource = new AttributeResource(apiContext);
         AttributeCollection attributes = attributeResource.getAttributes(0, 200, "", "", "");
 
         Attribute attrRating = attributeResource.getAttribute("tenant~rating");
 
+        // 9.1.3
         System.out.println("attrRating datatype: " + attrRating.getDataType());
         System.out.println("attrRating inputtype: " + attrRating.getInputType());
         System.out.println("attrRating extra: " + attrRating.getIsExtra());
@@ -29,6 +38,8 @@ public class MozuDataConnectorTest {
         System.out.println(attrRating.getVocabularyValues());
 
         Attribute attrColor = attributeResource.getAttributes(null, null, "", "attributecode sw 'color'", "").getItems().get(0);
+
+        // 9.1.3
         System.out.println("attrColor datatype: " + attrColor.getDataType());
         System.out.println("attrColor inputtype: " + attrColor.getInputType());
         System.out.println("attrColor extra: " + attrColor.getIsExtra());
@@ -41,40 +52,75 @@ public class MozuDataConnectorTest {
 
     }
 
+
+    // Exercise 9.2
     public void addAttributes() throws Exception {
         AttributeResource attributeResource = new AttributeResource(apiContext);
 
-        String attributeName = "Monogram";
+//        String attributeName = "Monogram";
+//
+//        // define the attribute name
+//        Attribute attribute = new Attribute();
+//
+//        AttributeLocalizedContent content = new AttributeLocalizedContent();
+//        content.setName(attributeName);
+//
+//        // 9.2.2
+//        // add attribute values
+//        attribute.setAdminName(attributeName);
+//        attribute.setAttributeCode("monogram");
+//        attribute.setAttributeFQN("tenant~monogram");
+//        attribute.setInputType("TextBox");
+//        attribute.setDataType("String");
+//        attribute.setIsExtra(true);
+//        attribute.setIsOption(false);
+//        attribute.setIsProperty(false);
+//        attribute.setNamespace("tenant");
+//        attribute.setContent(content);
+//        attribute.setValueType("ShopperEntered");
+//
+//        // add new attribute
+//        Attribute createdAttribute = attributeResource.addAttribute(attribute);
+//
+//        // update search options, update attributes, return back only the
+//        // attributeFQN and no the whole object
+//        Attribute updatedAttribute = attributeResource.updateAttribute(createdAttribute, createdAttribute.getAttributeFQN(), "AttributeFQN");
+//
+//        System.out.println(updatedAttribute.getAttributeFQN());
 
-        // define the attribute name
-        Attribute attribute = new Attribute();
+        // 9.3 [Optional]
+        String purseAttrName  = "Purse-Size";
 
         AttributeLocalizedContent content = new AttributeLocalizedContent();
-        content.setName(attributeName);
+        content.setName(purseAttrName);
 
-        // add attribute values
-        attribute.setAdminName(attributeName);
-        attribute.setAttributeCode("monogram");
-        attribute.setAttributeFQN("tenant~monogram");
-        attribute.setInputType("TextBox");
-        attribute.setDataType("String");
-        attribute.setIsExtra(true);
-        attribute.setIsOption(false);
-        attribute.setIsProperty(false);
-        attribute.setNamespace("tenant");
-        attribute.setContent(content);
-        attribute.setValueType("ShopperEntered");
+        Attribute purseSizeAttr = new Attribute();
 
-        // add new attribute
-        Attribute createdAttribute = attributeResource.addAttribute(attribute);
+        purseSizeAttr.setAdminName(purseAttrName);
+        purseSizeAttr.setAttributeCode("purse-size");
+        purseSizeAttr.setAttributeFQN("tenant~purse-size");
+        purseSizeAttr.setInputType("TextBox");
+        purseSizeAttr.setDataType("String");
+        purseSizeAttr.setIsExtra(false);
+        purseSizeAttr.setIsOption(true);
+        purseSizeAttr.setIsProperty(false);
+        purseSizeAttr.setNamespace("tenant");
+        purseSizeAttr.setContent(content);
+        purseSizeAttr.setValueType("ShopperEntered");
+        List<AttributeVocabularyValue> vocabularyValues = Arrays.asList(new AttributeVocabularyValue(), new AttributeVocabularyValue(), new AttributeVocabularyValue());
+        vocabularyValues.get(0).setValue("Petite");
+        vocabularyValues.get(1).setValue("Classic");
+        vocabularyValues.get(2).setValue("Alta");
+        purseSizeAttr.setVocabularyValues(vocabularyValues);
 
-        // update search options, update attributes, return back only the
-        // attributeFQN and no the whole object
-        Attribute updatedAttribute = attributeResource.updateAttribute(createdAttribute, createdAttribute.getAttributeFQN(), "AttributeFQN");
+        Attribute createdPurseAttribute = attributeResource.addAttribute(purseSizeAttr);
 
-        System.out.println(updatedAttribute.getAttributeFQN());
+        Attribute updatedPurseAttribute = attributeResource.updateAttribute(createdPurseAttribute, createdPurseAttribute.getAttributeFQN(), "AttributeFQN");
+
+        System.out.println(updatedPurseAttribute.getAttributeFQN());
     }
 
+    // Exercise 10.1
     public void getProductTypes() throws Exception{
 
         // create a new productType resource
@@ -92,6 +138,34 @@ public class MozuDataConnectorTest {
 
     }
 
+    // Exercise 11.1
+    public void getProducts() throws Exception{
+
+        // create a new product resource
+        ProductResource productResource = new ProductResource(apiContext);
+
+        // get product type filtered by name
+        ProductCollection products = productResource.getProducts(0, 200, "", "", "", null, null, "");
+
+        // create a new location inventory resource
+        LocationInventoryResource inventoryResource = new LocationInventoryResource(apiContext);
+
+    }
+
+    // Exercise 13.1
+    public void getCustomers() throws Exception{
+
+        CustomerAccountResource accountResource = new CustomerAccountResource(apiContext);
+
+        CustomerContactResource contactResource = new CustomerContactResource(apiContext);
+    }
+
+    // Exercise 14.1
+    public void getOrders() throws Exception{
+
+        OrderResource orderResource = new OrderResource(apiContext);
+    }
+
     public static void main(String[] args){
         AppAuthInfo appAuthInfo = new AppAuthInfo();
 
@@ -105,8 +179,8 @@ public class MozuDataConnectorTest {
 
         try {
 //            mozuDataConnectorTest.getAttributes();
-//            mozuDataConnectorTest.addAttributes();
-            mozuDataConnectorTest.getProductTypes();
+            mozuDataConnectorTest.addAttributes();
+//            mozuDataConnectorTest.getProductTypes();
         }
         catch (Exception e) {
             e.printStackTrace();

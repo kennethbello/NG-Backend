@@ -25,7 +25,7 @@ repositories {
 }
 
 // specify your main class name
-mainClassName = 'dataconnector.GettingStarted.Exercise91'
+mainClassName = 'dataconnector.GettingStarted.MozuDataConnectorTest'
 
 // specify a certain version of Gradle
 task wrapper(type: Wrapper) {
