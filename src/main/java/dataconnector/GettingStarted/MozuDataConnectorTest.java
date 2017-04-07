@@ -1,5 +1,6 @@
 package dataconnector.GettingStarted;
 
+import com.mozu.api.ApiException;
 import com.mozu.api.MozuApiContext;
 import com.mozu.api.contracts.appdev.AppAuthInfo;
 import com.mozu.api.contracts.productadmin.*;
@@ -12,8 +13,6 @@ import com.mozu.api.resources.commerce.customer.CustomerAccountResource;
 import com.mozu.api.resources.commerce.customer.accounts.CustomerContactResource;
 import com.mozu.api.security.AppAuthenticator;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,67 +56,84 @@ public class MozuDataConnectorTest {
     public void addAttributes() throws Exception {
         AttributeResource attributeResource = new AttributeResource(apiContext);
 
-//        String attributeName = "Monogram";
-//
-//        // define the attribute name
-//        Attribute attribute = new Attribute();
-//
-//        AttributeLocalizedContent content = new AttributeLocalizedContent();
-//        content.setName(attributeName);
-//
-//        // 9.2.2
-//        // add attribute values
-//        attribute.setAdminName(attributeName);
-//        attribute.setAttributeCode("monogram");
-//        attribute.setAttributeFQN("tenant~monogram");
-//        attribute.setInputType("TextBox");
-//        attribute.setDataType("String");
-//        attribute.setIsExtra(true);
-//        attribute.setIsOption(false);
-//        attribute.setIsProperty(false);
-//        attribute.setNamespace("tenant");
-//        attribute.setContent(content);
-//        attribute.setValueType("ShopperEntered");
-//
-//        // add new attribute
-//        Attribute createdAttribute = attributeResource.addAttribute(attribute);
-//
-//        // update search options, update attributes, return back only the
-//        // attributeFQN and no the whole object
-//        Attribute updatedAttribute = attributeResource.updateAttribute(createdAttribute, createdAttribute.getAttributeFQN(), "AttributeFQN");
-//
-//        System.out.println(updatedAttribute.getAttributeFQN());
+        String attributeName = "Monogram";
 
-        // 9.3 [Optional]
-        String purseAttrName  = "Purse-Size";
+        // define the attribute name
+        Attribute attribute = new Attribute();
 
         AttributeLocalizedContent content = new AttributeLocalizedContent();
-        content.setName(purseAttrName);
+        content.setName(attributeName);
 
-        Attribute purseSizeAttr = new Attribute();
+        // 9.2.2
+        // add attribute values
+        attribute.setAdminName(attributeName);
+        attribute.setAttributeCode("monogram");
+        attribute.setAttributeFQN("tenant~monogram");
+        attribute.setInputType("TextBox");
+        attribute.setDataType("String");
+        attribute.setIsExtra(true);
+        attribute.setIsOption(false);
+        attribute.setIsProperty(false);
+        attribute.setNamespace("tenant");
+        attribute.setContent(content);
+        attribute.setValueType("ShopperEntered");
 
-        purseSizeAttr.setAdminName(purseAttrName);
-        purseSizeAttr.setAttributeCode("purse-size");
-        purseSizeAttr.setAttributeFQN("tenant~purse-size");
-        purseSizeAttr.setInputType("TextBox");
-        purseSizeAttr.setDataType("String");
-        purseSizeAttr.setIsExtra(false);
-        purseSizeAttr.setIsOption(true);
-        purseSizeAttr.setIsProperty(false);
-        purseSizeAttr.setNamespace("tenant");
-        purseSizeAttr.setContent(content);
-        purseSizeAttr.setValueType("ShopperEntered");
-        List<AttributeVocabularyValue> vocabularyValues = Arrays.asList(new AttributeVocabularyValue(), new AttributeVocabularyValue(), new AttributeVocabularyValue());
-        vocabularyValues.get(0).setValue("Petite");
-        vocabularyValues.get(1).setValue("Classic");
-        vocabularyValues.get(2).setValue("Alta");
-        purseSizeAttr.setVocabularyValues(vocabularyValues);
+        try{
+            // add new attribute
+            Attribute createdAttribute = attributeResource.addAttribute(attribute);
 
-        Attribute createdPurseAttribute = attributeResource.addAttribute(purseSizeAttr);
+            // update search options, update attributes, return back only the
+            // attributeFQN and no the whole object
+            Attribute updatedAttribute = attributeResource.updateAttribute(createdAttribute, createdAttribute.getAttributeFQN(), "AttributeFQN");
 
-        Attribute updatedPurseAttribute = attributeResource.updateAttribute(createdPurseAttribute, createdPurseAttribute.getAttributeFQN(), "AttributeFQN");
+            System.out.println(updatedAttribute.getAttributeFQN());
+        } catch (ApiException e){
+            System.err.println("ApiException: " + e.getMessage());
+        }
 
-        System.out.println(updatedPurseAttribute.getAttributeFQN());
+
+        // 9.3 [Optional]
+        // setting option to true or setting the input type to list is causing a 409
+        // TODO: find correct attributes that must be set
+//        String purseAttrName  = "Purse-Size";
+//
+//        AttributeLocalizedContent purseContent = new AttributeLocalizedContent();
+//        purseContent.setName(purseAttrName);
+//
+//        Attribute purseSizeAttr = new Attribute();
+//
+//        purseSizeAttr.setAdminName(purseAttrName);
+//        purseSizeAttr.setAttributeCode("Purse-Size");
+//        purseSizeAttr.setAttributeFQN("tenant~Purse-Size");
+//        purseSizeAttr.setInputType("TextBox");
+//        purseSizeAttr.setDataType("String");
+//        purseSizeAttr.setIsExtra(false);
+//        purseSizeAttr.setIsOption(true);
+//        purseSizeAttr.setIsProperty(false);
+//        purseSizeAttr.setNamespace("tenant");
+//        purseSizeAttr.setContent(purseContent);
+//        purseSizeAttr.setValueType("ShopperEntered");
+//        List<AttributeVocabularyValue> vocabularyValues = Arrays.asList(new AttributeVocabularyValue(), new AttributeVocabularyValue(), new AttributeVocabularyValue());
+//        vocabularyValues.get(0).setDisplayOrder(1);
+//        vocabularyValues.get(0).setValue("Petite");
+//        vocabularyValues.get(1).setDisplayOrder(2);
+//        vocabularyValues.get(1).setValue("Classic");
+//        vocabularyValues.get(2).setDisplayOrder(3);
+//        vocabularyValues.get(2).setValue("Alta");
+//        purseSizeAttr.setVocabularyValues(vocabularyValues);
+//
+//        try{
+//            Attribute createdPurseAttribute = attributeResource.addAttribute(purseSizeAttr);
+//            Attribute updatedPurseAttribute = attributeResource.updateAttribute(createdPurseAttribute, createdPurseAttribute.getAttributeFQN(), "AttributeFQN");
+//            System.out.println(updatedPurseAttribute.getAttributeFQN());
+//        } catch (ApiException e){
+//            System.err.println("ApiException: " + e.getMessage());
+//            Attribute updatedPurseAttribute = attributeResource.updateAttribute(purseSizeAttr, purseSizeAttr.getAttributeFQN(), "AttributeFQN");
+//            System.out.println(updatedPurseAttribute.getAttributeFQN());
+//        }
+
+
+
     }
 
     // Exercise 10.1
@@ -180,7 +196,7 @@ public class MozuDataConnectorTest {
         try {
 //            mozuDataConnectorTest.getAttributes();
             mozuDataConnectorTest.addAttributes();
-//            mozuDataConnectorTest.getProductTypes();
+            mozuDataConnectorTest.getProductTypes();
         }
         catch (Exception e) {
             e.printStackTrace();
