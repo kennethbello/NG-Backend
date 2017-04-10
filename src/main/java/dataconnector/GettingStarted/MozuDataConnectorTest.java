@@ -13,8 +13,8 @@ import com.mozu.api.resources.commerce.customer.CustomerAccountResource;
 import com.mozu.api.resources.commerce.customer.accounts.CustomerContactResource;
 import com.mozu.api.security.AppAuthenticator;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MozuDataConnectorTest {
@@ -144,14 +144,90 @@ public class MozuDataConnectorTest {
 
         // get list of attributes with max page size and starting index at the beginning
         ProductTypeCollection productTypes = productTypeResource.getProductTypes(0, 200, "", "", "");
-        productTypes.getItems().stream().forEach(
-            element -> System.out.println(element.getName())
+
+        // each product type
+//        productTypes.getItems().stream().forEach(
+//            element -> System.out.println(element.getName())
+//        );
+
+        ArrayList<AttributeInProductType> options = new ArrayList<>();
+
+        productTypes.getItems().stream().filter(
+            productType -> productType.getName().equals("Purse")
+        ).forEach(
+            pType -> pType.getOptions().stream().forEach(
+                option -> options.add(option)
+            )
         );
 
-        Stream purseType = productTypes.getItems().stream().filter(productType -> productType.getName() == "Monogram");
+        options.stream().forEach(
+            opt -> opt.getVocabularyValues().stream().forEach(
+                val -> System.out.println(val.getValue())
+            )
+        );
 
-        System.out.println(purseType.collect(Collectors.toList()));
+    }
 
+    // Exercise 10.2
+    public void updateProductType() throws Exception{
+
+        // create a new productType resource
+        ProductTypeResource productTypeResource = new ProductTypeResource(apiContext);
+
+        // get list of attributes with max page size and starting index at the beginning
+        ProductTypeCollection productTypes = productTypeResource.getProductTypes(0, 200, "", "", "");
+
+        MozuDataConnectorTest data = new MozuDataConnectorTest();
+
+        data.addExtrasToProductType(productTypes, "Purse", "tenant~purse-size", productTypeResource);
+
+    }
+
+    public void addExtrasToProductType(ProductTypeCollection productTypeCollection, String prodTypeName, String fqn, ProductTypeResource resource) throws Exception{
+
+        MozuDataConnectorTest data = new MozuDataConnectorTest();
+
+        Attribute attr = data.getAttributeForProduct(fqn);
+
+        List<AttributeInProductType> attributeInProductTypes = new ArrayList<>();
+
+        attributeInProductTypes.add(data.createAttributeInProductType(attr));
+
+        productTypeCollection.getItems().stream().filter(
+            productType -> productType.getName().equals(prodTypeName)
+        ).forEach(pType -> {
+            pType.getExtras().stream().forEach(
+                attrProd -> {
+                    attributeInProductTypes.add(attrProd);
+                });
+            // add existing and new extras
+            pType.setExtras(attributeInProductTypes);
+            try {
+                //update product type
+                resource.updateProductType(pType, pType.getId());
+            }catch (Exception e){
+                System.err.println(e.getMessage());
+            }
+        });
+    }
+
+    public Attribute getAttributeForProduct(String name) throws Exception{
+        // create a new attribute resource
+        AttributeResource attributeResource = new AttributeResource(apiContext);
+
+        // list of attributes
+        AttributeCollection attributes = attributeResource.getAttributes(0, 200, "", "", "");
+
+        return attributeResource.getAttribute(name);
+    }
+
+    public AttributeInProductType createAttributeInProductType(Attribute attr) throws Exception{
+
+        AttributeInProductType attributeInProductType = new AttributeInProductType();
+
+        attributeInProductType.setAttributeFQN(attr.getAttributeFQN());
+
+        return attributeInProductType;
     }
 
     // Exercise 11.1
@@ -195,8 +271,9 @@ public class MozuDataConnectorTest {
 
         try {
 //            mozuDataConnectorTest.getAttributes();
-            mozuDataConnectorTest.addAttributes();
-            mozuDataConnectorTest.getProductTypes();
+//            mozuDataConnectorTest.addAttributes();
+//            mozuDataConnectorTest.getProductTypes();
+            mozuDataConnectorTest.updateProductType();
         }
         catch (Exception e) {
             e.printStackTrace();
