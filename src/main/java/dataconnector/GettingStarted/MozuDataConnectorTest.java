@@ -20,14 +20,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MozuDataConnectorTest {
 
-    MozuApiContext apiContext = new MozuApiContext(18740, 29081);
+    private MozuApiContext apiContext = new MozuApiContext(18740, 29081);
 
     /*
      INTERACTING WITH PRODUCT ATTRIBUTES
      */
 
     // Exercise 9.1
-    public void getAttributes() throws Exception {
+    private void getAttributes() throws Exception {
         AttributeResource attributeResource = new AttributeResource(apiContext);
         AttributeCollection attributes = attributeResource.getAttributes(0, 200, "", "", "");
 
@@ -58,7 +58,7 @@ public class MozuDataConnectorTest {
 
 
     // Exercise 9.2
-    public void addAttributes() throws Exception {
+    private void addAttributes() throws Exception {
         AttributeResource attributeResource = new AttributeResource(apiContext);
 
         String attributeName = "Monogram";
@@ -145,42 +145,44 @@ public class MozuDataConnectorTest {
     INTERACTING WITH PRODUCT TYPES
      */
     // Exercise 10.1
-    public void getProductTypes() throws Exception{
+    private void getProductTypes(){
 
         // create a new productType resource
         ProductTypeResource productTypeResource = new ProductTypeResource(apiContext);
 
         // get list of attributes with max page size and starting index at the beginning
-        ProductTypeCollection productTypes = productTypeResource.getProductTypes(0, 200, "", "", "");
-
-        // each product type
+        try {
+            ProductTypeCollection productTypes = productTypeResource.getProductTypes(0, 200, "", "", "");
+            // each product type
 //        productTypes.getItems().stream().forEach(
 //            element -> System.out.println(element.getName())
 //        );
 
-        ArrayList<AttributeInProductType> options = new ArrayList<>();
+            ArrayList<AttributeInProductType> options = new ArrayList<>();
 
-        // filter through product type resource and
-        // loop through all options
-        productTypes.getItems().stream().filter(
-            productType -> productType.getName().equals("Purse")
-        ).forEach(
-            pType -> pType.getOptions().stream().forEach(
-                option -> options.add(option)
-            )
-        );
+            // filter through product type resource and
+            // loop through all options
+            productTypes.getItems().stream().filter(
+                productType -> productType.getName().equals("Purse")
+            ).forEach(
+                pType -> pType.getOptions().forEach(
+                    option -> options.add(option)
+                )
+            );
 
-        // output options
-        options.stream().forEach(
-            opt -> opt.getVocabularyValues().stream().forEach(
-                val -> System.out.println(val.getValue())
-            )
-        );
-
+            // output options
+            options.forEach(
+                opt -> opt.getVocabularyValues().forEach(
+                    val -> System.out.println(val.getValue())
+                )
+            );
+        }catch (Exception e) {
+            System.err.println("APIException: " + e.getMessage());
+        }
     }
 
     // Exercise 10.2
-    public void updateProductType() throws Exception{
+    private void updateProductType() throws Exception{
 
         // create a new productType resource
         ProductTypeResource productTypeResource = new ProductTypeResource(apiContext);
@@ -194,7 +196,7 @@ public class MozuDataConnectorTest {
 
     }
 
-    public void addEOPToProductType(ProductTypeCollection productTypeCollection, String prodTypeName, String fqn, ProductTypeResource resource, String choice) throws Exception{
+    private void addEOPToProductType(ProductTypeCollection productTypeCollection, String prodTypeName, String fqn, ProductTypeResource resource, String choice) throws Exception{
 
         MozuDataConnectorTest data = new MozuDataConnectorTest();
 
@@ -211,7 +213,7 @@ public class MozuDataConnectorTest {
             // choice to add attribute as extra, option, or property
             switch (choice) {
                 case "Extra":
-                    pType.getExtras().stream().forEach(
+                    pType.getExtras().forEach(
                         attrProd -> {
                             attributeInProductTypes.add(attrProd);
                         });
@@ -219,7 +221,7 @@ public class MozuDataConnectorTest {
                     pType.setExtras(attributeInProductTypes);
                     break;
                 case "Option":
-                    pType.getOptions().stream().forEach(
+                    pType.getOptions().forEach(
                         attrProd -> {
                             attributeInProductTypes.add(attrProd);
                         });
@@ -227,7 +229,7 @@ public class MozuDataConnectorTest {
                     pType.setOptions(attributeInProductTypes);
                     break;
                 case "Property":
-                    pType.getProperties().stream().forEach(
+                    pType.getProperties().forEach(
                         attrProd -> {
                             attributeInProductTypes.add(attrProd);
                         });
@@ -244,7 +246,7 @@ public class MozuDataConnectorTest {
         });
     }
 
-    public Attribute getAttributeForProduct(String name) throws Exception{
+    private Attribute getAttributeForProduct(String name) throws Exception{
         // create a new attribute resource
         AttributeResource attributeResource = new AttributeResource(apiContext);
 
@@ -254,7 +256,7 @@ public class MozuDataConnectorTest {
         return attributeResource.getAttribute(name);
     }
 
-    public AttributeInProductType createAttributeInProductType(Attribute attr) throws Exception{
+    private AttributeInProductType createAttributeInProductType(Attribute attr) throws Exception{
 
         AttributeInProductType attributeInProductType = new AttributeInProductType();
 
@@ -269,13 +271,14 @@ public class MozuDataConnectorTest {
      */
 
     // Exercise 11.1
-    public void getProducts() throws Exception{
+    private void getProducts() throws Exception{
 
         // create a new product resource
         ProductResource productResource = new ProductResource(apiContext);
 
         // get product type filtered by name
         ProductCollection products = productResource.getProducts(0, 200, "", "", "", null, null, "");
+        Product prod = new Product();
 
         // create a new location inventory resource
         LocationInventoryResource inventoryResource = new LocationInventoryResource(apiContext);
@@ -285,8 +288,8 @@ public class MozuDataConnectorTest {
         final AtomicInteger conf = new AtomicInteger();
         final AtomicInteger nonConf = new AtomicInteger();
         final AtomicInteger numOfTents = new AtomicInteger();
-        products.getItems().stream().forEach(product -> {
-            if(product.getHasConfigurableOptions()){
+        products.getItems().forEach(product -> {
+                if(product.getHasConfigurableOptions()){
                 conf.incrementAndGet();
             }else{
                 nonConf.incrementAndGet();
@@ -302,7 +305,7 @@ public class MozuDataConnectorTest {
     }
 
     // Exercise 13.1
-    public void getCustomers() throws Exception{
+    private void getCustomers() throws Exception{
 
         CustomerAccountResource accountResource = new CustomerAccountResource(apiContext);
 
@@ -310,7 +313,7 @@ public class MozuDataConnectorTest {
     }
 
     // Exercise 14.1
-    public void getOrders() throws Exception{
+    private void getOrders() throws Exception{
 
         OrderResource orderResource = new OrderResource(apiContext);
     }

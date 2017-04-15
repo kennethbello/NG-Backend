@@ -1,5 +1,7 @@
 package dataconnector.GettingStarted;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.mozu.api.MozuApiContext;
 import com.mozu.api.contracts.appdev.AppAuthInfo;
 import com.mozu.api.resources.commerce.customer.CustomerAccountResource;
@@ -23,6 +25,9 @@ public class GetCustomerAccountsCount {
 
         /** log the total number of customer accounts */
         try {
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            String json = ow.writeValueAsString(customerAccountResource.getAccounts());
+            System.out.println(json);
             System.out.println("Number of Customer Accounts: " + customerAccountResource.getAccounts().getTotalCount());
         } catch (Exception e) {
             e.printStackTrace();
