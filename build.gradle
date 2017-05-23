@@ -1,21 +1,9 @@
-apply plugin: 'idea'
-//and standard one
-apply plugin: 'java'
-apply plugin: 'war'
-
-war {
-    manifest{
-
-    }
-}
-
 // specify your package and version
-group 'dataconnector.GettingStarted'
+group 'kibo.gettingstarted'
 version '1.0-SNAPSHOT'
 
 // specify a Java application
 apply plugin: 'java'
-
 // specify an executable application
 apply plugin: 'application'
 
@@ -25,42 +13,21 @@ repositories {
 }
 
 // specify your main class name
-mainClassName = 'dataconnector.GettingStarted.MozuDataConnectorTest'
+mainClassName = 'com.kibo.gettingstarted.GetCustomerAccountsCount'
 
 // specify a certain version of Gradle
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.2.1'
+    gradleVersion = '3.3'
 }
 
 // specify a certain  version of the Mozu Java SDK, in addition to the standard test dependencies and exclusions.
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-
     compile  ('com.mozu:mozu-api-java:1.24.11') {
         exclude group: 'javax.sql'
         exclude group: 'javax.transaction'
         exclude group: 'jcs'
         exclude group: 'javax.servlet'
     }
-    compile group: 'com.mozu', name: 'mozu-java-security', version: '1.0.2'
-    compile group: 'com.mozu', name: 'mozu-api-jobs', version: '1.0.23'
-
-    ext {
-        springVersion='4.0.5.RELEASE'
-    }
-
-    // spring framework
-    compile group: 'org.springframework', name: 'spring-aop', version: springVersion
-    compile group: 'org.springframework', name: 'spring-beans', version: springVersion
-    compile group: 'org.springframework', name: 'spring-context', version: springVersion
-    compile group: 'org.springframework', name: 'spring-core', version: springVersion
-    compile group: 'org.springframework', name: 'spring-expression', version: springVersion
-    compile group: 'org.springframework', name: 'spring-web', version: springVersion
-    compile group: 'org.springframework', name: 'spring-webmvc', version: springVersion
-    compile group: 'org.springframework', name: 'spring-test', version: springVersion
-}
-
-configurations {
-    provided.all*.exclude module: 'log4j-over-slf4j'
-    provided.all*.exclude module: 'slf4j-simple'
+    compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.2'
 }
