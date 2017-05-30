@@ -1,0 +1,15 @@
+
+build/dependency-cache/
+build/tmp/compileJava/
+out/production/
+src/main/webapp/
+src/test/
+.idea/
+.DS_Store
+.gradle/
+build
+.gradle/3.3/
+build/classes/main/com/kibo/dataconnector/MozuDataConnectorTest.class
+build/classes/main/kibo/
+build/tmp/
+src/main/main.iml

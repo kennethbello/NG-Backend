@@ -3,22 +3,28 @@ package com.kibo.dataconnector;
 import com.mozu.api.ApiException;
 import com.mozu.api.MozuApiContext;
 import com.mozu.api.contracts.appdev.AppAuthInfo;
+import com.mozu.api.contracts.core.Address;
+import com.mozu.api.contracts.core.Measurement;
+import com.mozu.api.contracts.core.Phone;
+import com.mozu.api.contracts.customer.CustomerAccount;
+import com.mozu.api.contracts.customer.CustomerAccountCollection;
+import com.mozu.api.contracts.customer.CustomerContact;
 import com.mozu.api.contracts.productadmin.*;
 import com.mozu.api.contracts.tenant.MasterCatalog;
 import com.mozu.api.contracts.tenant.Site;
 import com.mozu.api.contracts.tenant.Tenant;
+import com.mozu.api.resources.commerce.catalog.admin.CategoryResource;
 import com.mozu.api.resources.commerce.catalog.admin.LocationInventoryResource;
 import com.mozu.api.resources.commerce.catalog.admin.ProductResource;
 import com.mozu.api.resources.commerce.catalog.admin.attributedefinition.AttributeResource;
 import com.mozu.api.resources.commerce.catalog.admin.attributedefinition.ProductTypeResource;
 import com.mozu.api.resources.commerce.catalog.admin.products.ProductVariationResource;
+import com.mozu.api.resources.commerce.customer.CustomerAccountResource;
+import com.mozu.api.resources.commerce.customer.accounts.CustomerContactResource;
 import com.mozu.api.resources.platform.TenantResource;
 import com.mozu.api.security.AppAuthenticator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -169,6 +175,15 @@ public class MozuDataConnectorTest {
         this.locationCode = locationCode;
     }
 
+    private String productCode;
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
+    }
+
     /**
      * Constructor
      */
@@ -213,6 +228,9 @@ public class MozuDataConnectorTest {
         setLocationCode(System.getenv("LocationCode"));
         System.out.println(getLocationCode());
 
+        setProductCode(System.getenv("ProductCode"));
+        System.out.println(getProductCode());
+
         getAppAuthInfo().setApplicationId(this.applicationId);
         getAppAuthInfo().setSharedSecret(this.sharedSecret);
         AppAuthenticator.initialize(appAuthInfo);
@@ -232,6 +250,7 @@ public class MozuDataConnectorTest {
             mozuDataConnectorTest.getProductTypes();
             mozuDataConnectorTest.updateProductType();
             mozuDataConnectorTest.getProducts();
+            mozuDataConnectorTest.getProduct();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -706,6 +725,195 @@ public class MozuDataConnectorTest {
 
         }
 
+    }
+
+    /**
+     * Exercise 11.2 CREATE A NEW PRODUCT
+     * @throws Exception
+     */
+    private Product getProduct() throws Exception {
+        String code = getProductCode();
+        // create a new product resource
+        ProductResource productResource = new ProductResource(getApiContext());
+
+        if( productResource.getProduct(code) == null ) {
+            createProduct(code);
+        }
+
+        return productResource.getProduct(code);
+    }
+
+    private void createProduct(String code) throws Exception{
+
+        // create a new product resource
+        ProductResource productResource = new ProductResource(getApiContext());
+
+        Product product = new Product();
+
+        // a.
+        ProductLocalizedContent content = new ProductLocalizedContent();
+        content.setProductName("Sport Handbag");
+
+        // b.
+        content.setLocaleCode("en-US");
+        product.setContent(content);
+
+        // c.
+        List<String> fullfillmentTypes = new ArrayList<>();
+        fullfillmentTypes.add("DirectShip");
+        product.setFulfillmentTypesSupported(fullfillmentTypes);
+
+        // d.
+        product.setHasConfigurableOptions(true);
+
+        // f.
+        Measurement measurement = new Measurement();
+        measurement.setValue(10.25);
+        measurement.setUnit("in");
+        product.setPackageLength(measurement);
+        measurement.setValue(3.0);
+        product.setPackageWidth(measurement);
+        measurement.setValue(7.0);
+        product.setPackageHeight(measurement);
+
+        // g.
+        ProductTypeResource productTypeResource = new ProductTypeResource(getApiContext());
+        ProductTypeCollection productTypeCollection = productTypeResource.getProductTypes(0, 200, "", "", "");
+        Optional<ProductType> productType =  productTypeCollection.getItems().stream().filter(pType -> pType.getName().equals("Purse")).findFirst();
+        product.setProductTypeId(productType.isPresent() ? productType.get().getId() : null);
+        if(product.getProductTypeId() != null) {
+            // h.
+            List<AttributeInProductType> extraPTypes = productType.isPresent() ? productType.get().getExtras() : null;
+            Optional<AttributeInProductType> extra = extraPTypes.stream().filter(attributeInProductType -> attributeInProductType.getAttributeFQN().equals("tenant~monogram")).findFirst();
+            ProductExtra productExtra = new ProductExtra();
+            productExtra.setAttributeFQN(extra.isPresent() ? extra.get().getAttributeFQN() : null);
+            List<ProductExtra> extras = new ArrayList<>();
+            if (productExtra.getAttributeFQN() != null) {
+                extras.add(productExtra);
+                product.setExtras(extras);
+            }
+
+            // i.
+            List<AttributeInProductType> optionPTypes = productType.isPresent() ? productType.get().getOptions() : null;
+            Optional<AttributeInProductType> option = optionPTypes.stream().filter(attributeInProductType -> attributeInProductType.getAttributeFQN().equals("tenant~purse-size")).findFirst();
+            ProductOption productOption = new ProductOption();
+            productOption.setAttributeFQN(option.isPresent() ? option.get().getAttributeFQN() : null);
+            if (productOption.getAttributeFQN() != null) {
+                ProductOptionValue productOptionValue = new ProductOptionValue();
+                List<ProductOptionValue> optionValues = new ArrayList<>();
+                option.get().getVocabularyValues().forEach(attributeVocabularyValueInProductType -> {
+                    String attribute = attributeVocabularyValueInProductType.getValue().toString();
+                    if(attribute.equals("Petite") || attribute.equals("Classic")){
+                        productOptionValue.setValue(attributeVocabularyValueInProductType.getValue());
+                        optionValues.add(productOptionValue);
+                    }
+                });
+                productOption.setValues(optionValues);
+                List<ProductOption> options = new ArrayList<>();
+                options.add(productOption);
+                product.setOptions(options);
+            }
+        }
+
+        // j.
+        // TODO: Not sure what search settings are
+
+        // k.
+        CategoryResource categoryResource = new CategoryResource(getApiContext());
+        CategoryPagedCollection categoryPagedCollection =  categoryResource.getCategories(0, 200, "", "", "");
+        Optional<Category> category = categoryPagedCollection.getItems().stream().filter(cat -> cat.getContent().getName().equals("Bags")).findFirst();
+        if(category.isPresent()) {
+            ProductCategory productCategory = new ProductCategory();
+            productCategory.setCategoryId(category.get().getId());
+            ProductInCatalogInfo productInCatalogInfo = new ProductInCatalogInfo();
+            List<ProductCategory> productCategories = new ArrayList<>();
+            productCategories.add(productCategory);
+            productInCatalogInfo.setProductCategories(productCategories);
+            List<ProductInCatalogInfo> productInCatalogInfos = new ArrayList<>();
+            productInCatalogInfos.add(productInCatalogInfo);
+            product.setProductInCatalogs(productInCatalogInfos);
+        }
+
+        Product createdProduct = productResource.addProduct(product);
+
+        productResource.updateProduct(createdProduct, createdProduct.getProductCode());
+
+        addInventory(createdProduct);
+
+    }
+
+    /**
+     * Exercise 11.3 ADD INVENTORY TO PRODUCT
+     * @throws Exception
+     */
+    // TODO: Not sure I am doing this correctly.
+    private void addInventory(Product product) throws Exception{
+        LocationInventoryResource locationInventoryResource = new LocationInventoryResource(getApiContext());
+        LocationInventoryAdjustment locationInventoryAdjustment = new LocationInventoryAdjustment();
+        locationInventoryAdjustment.setLocationCode(getLocationCode());
+        locationInventoryAdjustment.setProductCode(product.getProductCode());
+        locationInventoryAdjustment.setType("Stock On Hand");
+        locationInventoryAdjustment.setValue(10);
+        List<LocationInventoryAdjustment> locationInventoryAdjustments = new ArrayList<>();
+        locationInventoryAdjustments.add(locationInventoryAdjustment);
+        locationInventoryResource.updateLocationInventory(locationInventoryAdjustments, getLocationCode());
+
+    }
+
+    /**
+     * Exercise 13.1 GET CUSTOMER ACCOUNTS
+     * @throws Exception
+     */
+    private void getCustomers() throws Exception {
+        CustomerAccountResource customerAccountResource = new CustomerAccountResource(getApiContext());
+        CustomerContactResource customerContactResource = new CustomerContactResource(getApiContext());
+        CustomerAccountCollection customerAccountCollection = customerAccountResource.getAccounts(0,200, "", "", "", "", null, false, "");
+        customerAccountCollection.getItems().forEach(customer -> {
+            System.out.println("Customer Number: " + customer.getUserId());
+            System.out.println("Customer Email Address: " + customer.getEmailAddress());
+            System.out.println("Gift Card or Store Credits: " + customer.getCommerceSummary());
+        });
+    }
+
+    /**
+     * Exercise 13.2 CREATE A NEW CUSTOMER ACCOUNT
+     * @throws Exception
+     */
+    private void createCustomer() throws Exception {
+        CustomerAccountResource customerAccountResource = new CustomerAccountResource(getApiContext());
+        CustomerAccount customerAccount = new CustomerAccount();
+        CustomerContact customerContact = new CustomerContact();
+        // a.
+        customerAccount.setEmailAddress("example@kibo.com");
+        // b.
+        customerAccount.setFirstName("Taco");
+        customerAccount.setLastName("Tuesday");
+        // c - e.
+        customerAccount.setIsActive(true);
+        customerAccount.setIsAnonymous(false);
+        customerAccount.setTaxExempt(false);
+        // f.
+        customerAccount.setUserName("example@kibo.com");
+        // g.
+        // TODO: no method to add password
+        // h.
+        Phone phone = new Phone();
+        phone.setMobile("1234567890");
+        customerContact.setPhoneNumbers(phone);
+        Address address = new Address();
+        address.setAddress1("1234 Harwood St.");
+        address.setCityOrTown("Dallas");
+        address.setStateOrProvince("Texas");
+        address.setPostalOrZipCode("75201");
+        customerContact.setAddress(address);
+        // i.
+        // TODO: no method for isImport
+
+        List<CustomerContact> customerContacts = new ArrayList<>();
+        customerContacts.add(customerContact);
+        customerAccount.setContacts(customerContacts);
+        CustomerAccount account = customerAccountResource.addAccount(customerAccount);
+        customerAccountResource.updateAccount(account, account.getId());
     }
 
 }
